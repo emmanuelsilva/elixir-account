@@ -6,8 +6,8 @@ defmodule AccountTest do
   @initial_balance 1000
 
   setup do
-    {:ok, account} = Account.start_link(@initial_balance, false)
-    {:ok, account_read_only} = Account.start_link(@initial_balance, true)
+    {:ok, account} = Account.start_link(%AccountState{balance: @initial_balance, read_only?: false})
+    {:ok, account_read_only} = Account.start_link(%AccountState{balance: @initial_balance, read_only?: true})
     {:ok, account: account, account_read_only: account_read_only}
   end
 
@@ -63,9 +63,9 @@ defmodule AccountTest do
 
   describe "Transfer" do
     setup do
-      {:ok, from_account} = Account.start_link(@initial_balance)
-      {:ok, destination_account} = Account.start_link(@initial_balance)
-      {:ok, destination_read_only_account} = Account.start_link(@initial_balance, true)
+      {:ok, from_account} = Account.start_link(%AccountState{balance: @initial_balance, read_only?: false})
+      {:ok, destination_account} = Account.start_link(%AccountState{balance: @initial_balance, read_only?: false})
+      {:ok, destination_read_only_account} = Account.start_link(%AccountState{balance: @initial_balance, read_only?: true})
 
       {:ok,
        from_account: from_account,

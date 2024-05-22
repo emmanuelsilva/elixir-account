@@ -1,22 +1,27 @@
 defmodule Account do
   use GenServer
 
-  def start_link(initial_balance, read_only \\ false) do
-    GenServer.start_link(__MODULE__, {initial_balance, read_only})
+  @spec start_link(AccountState.t()) :: {:error, any()} | {:ok, pid()}
+  def start_link(%AccountState{} = state) do
+    GenServer.start_link(__MODULE__, state)
   end
 
+  @spec balance(pid()) :: {:error, any()} | {:ok, float()}
   def balance(pid) do
     GenServer.call(pid, :balance)
   end
 
+  @spec deposit(pid(), float()) :: :ok | {:error, :read_only_account} | {:error, any()}
   def deposit(pid, amount) do
     GenServer.call(pid, {:deposit, amount})
   end
 
+  @spec withdraw(pid(), float()) :: :ok | {:error, :read_only_account} | {:error, any()}
   def withdraw(pid, amount) do
     GenServer.call(pid, {:withdraw, amount})
   end
 
+  @spec transfer(pid(), pid(), float()) :: :ok | {:error, :read_only_account} | {:error, any()}
   def transfer(from_pid, to_pid, amount) do
     case withdraw(from_pid, amount) do
       :ok -> try_deposit_or_compensate(from_pid, to_pid, amount)
@@ -24,6 +29,7 @@ defmodule Account do
     end
   end
 
+  @spec try_deposit_or_compensate(pid(), pid(), float()) :: :ok | {:error, any()}
   defp try_deposit_or_compensate(from_pid, to_pid, amount) do
     case deposit(to_pid, amount) do
       :ok ->
@@ -35,7 +41,7 @@ defmodule Account do
     end
   end
 
-  def init({initial_balance, read_only}) do
+  def init(%AccountState{balance: initial_balance, read_only?: read_only}) do
     {:ok, %{balance: initial_balance, read_only: read_only}}
   end
 
